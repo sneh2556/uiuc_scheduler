@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    body {
+        height: 100%;
+        background-image: url(../static/images/illinois-siebel.jpg);
+        background-color: rgb(109, 109, 109);
+        background-size: cover;
+        background-blend-mode: normal;
+    }
+</style>
+
+<form id="searchform" action="/get_avg_gpa/" method="post"> {% csrf_token %}
+    <fieldset>
+        <input id="subjects" type="text" name="subjects" placeholder="Subject">
+        <input id="number" type="text" name="number" placeholder="Number">
+        <button type="submit" value="Submit">Submit</button>
+    </fieldset>
+</form>
+
+{% endblock %}

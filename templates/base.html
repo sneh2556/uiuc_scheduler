@@ -1,0 +1,156 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>UIUC Course Scheduler</title>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" type=text/css href="{% static 'styles/main.css' %}">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body>
+
+<style>
+    @import url(https://fonts.googleapis.com/css?family=Montserrat);
+
+    html {
+        height: 100%;
+        background: linear-gradient(rgba(232, 74, 39, 1), rgba(0, 40, 85, 1));
+    }
+
+    body {
+        font-family: montserrat, arial, verdana;
+        margin: 0;
+    }
+
+    .footer{
+        bottom: 0;
+        left: 0;
+        position: fixed;
+        width: 100%;
+        text-align: center;
+        background-color: rgba(0, 0, 0, 0.3);
+        color: white/*rgba(232, 74, 39, 1)*/;
+        font-weight: bolder;
+        padding: 5px 5px;
+        font-size: 15px;
+    }
+</style>
+
+<script type="text/javascript" language="javascript">
+    $(function() {
+        $("#subjects").autocomplete({
+          source: "/api/get_subjects/",
+          select: function (event, ui) { //item selected
+            AutoCompleteSelectHandler(event, ui)
+          },
+          minLength: 1,
+        });
+      });
+
+      function AutoCompleteSelectHandler(event, ui)
+      {
+        var selectedObj = ui.item;
+      }
+
+      $(window).on("load resize ", function() {
+          var scrollWidth = $('.tbl-content').width() - $('.tbl-content table').width();
+          $('.tbl-header').css({'padding-right':scrollWidth});
+      }).resize();
+
+      
+    function openNav() {
+        document.getElementById("mySidenav").style.transform = "translateX(0)";
+        //document.getElementById("main").style.marginLeft = "350px";
+        //document.getElementById("menutop").style.marginLeft = "350px";
+        document.getElementById("main").style.opacity = "0.7";
+        document.getElementById("menutop").style.opacity = "0.7";
+        document.body.style.backgroundBlendMode = "multiply"; 
+        //document.html.style.background = "linear-gradient(rgba(232, 74, 39, 0.1), rgba(0, 40, 85, 0.1))";
+    }
+
+    function closeNav() {
+        document.getElementById("mySidenav").style.transform = "translateX(-354px)";
+        //document.getElementById("main").style.marginLeft= "0";
+        //document.getElementById("menutop").style.marginLeft= "0";
+        document.getElementById("main").style.opacity = "1";
+        var url = window.location.href;
+        if ( url == "http://localhost:8000/" ) {
+            document.getElementById("menutop").style.opacity = "0.9";
+        } else {
+            document.getElementById("menutop").style.opacity = "1";
+        }
+        document.body.style.backgroundBlendMode= "normal"; 
+        //document.html.style.background = "linear-gradient(rgba(232, 74, 39, 1), rgba(0, 40, 85, 1))";
+    }
+</script>
+
+<div id="mySidenav" class="sidenav" style='border:2px solid rgba(0, 40, 85, 1)'>
+    <i style="margin:0px 10px 30px 15px;background-color:black;border-radius:15px;font-size:20px;color:white;" class="material-icons">person</i>
+
+    {% if user.is_authenticated %}
+        <p style="display:inline-block;color:black;font-size:18px;margin:0;">{{user.first_name}} {{user.last_name}}</p>
+    {% else %}
+        <a style="padding: 30px 15px 30px 0px;display:inline-block;position:absolute;top:0;font-size:18px;font-weight:bolder;" href="/accounts/login?next={{request.path}}">Login</a>
+    {% endif %}
+
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    <a class="alist" href="/generate_schedule_select_term/">GENERATE SCHEDULE</a>
+    <a class="alist" href="/get_prof_ratings/">PROFESSOR RATINGS</a>
+    <a class="alist" href="/search_geneds/">GEN EDS</a>
+    <a class="alist" href='/search/'>FIND COURSE AVG GPA</a>
+    <a class="alist" href="/insert/">ADD RATING</a>
+    {% if user.is_authenticated %}
+        <a class="alist" href="/view_friends/">FRIENDS</a>
+        <a class="alist" href="/view_friend_schedules/">FRIEND SCHEDULES</a>
+        <a class="alist" href="/view_saved_schedules/">SAVED SCHEDULES</a>
+        <a class="alist" href="/delete_my_ratings/">DELETE MY RATINGS</a>
+        <a class="alist" href="/update_my_ratings/">UPDATE MY RATINGS</a>
+        <a class="alist" href="/accounts/logout?next=/">LOGOUT</a>
+    {% endif %}
+</div>
+
+<div id="menutop" class="menutop">
+    <span style="cursor:pointer;" onclick="openNav()">&#9776;</span>
+    <a href="/"><i style="cursor:pointer;padding: 15px 8px;color:white;font-size:25px;" class="material-icons">home</i></a>
+    {% if user.is_authenticated %}
+        <i style="cursor:pointer;padding: 15px 0px 15px 8px;color:white;font-size:25px;" class="material-icons">search</i>
+        <form style="display:inline-block;position:absolute;" id='search_people' autocomplete="off" action="/search_people/" method="post"> {% csrf_token %}
+        <input name="searchName" id="searchName" style="color:white;font-size:15px;position:absolute;margin:12px 3px;padding:5px;border:0;border-bottom:1px solid white;background-color:Transparent;" placeholder="Search People"></input>
+        </form>
+        <a href="/accounts/logout?next=/">
+            <i style="float:right;margin: 15px 15px;font-size:20px;color:white;font-weight:bold;" class="material-icons">logout</i>
+        </a>
+        <p style="float:right;padding: 0px 0px;display:inline-block;color:white;font-size:16px;">Hello {{user.first_name}} {{user.last_name}}!</p>
+        <i style="float:right;margin: 15px 15px;background-color:white;border-radius:15px;font-size:20px;" class="material-icons">person</i>
+    {% else %}
+        <a style="float:right" href="/accounts/login/?next={{request.path}}"><button>Login</button></a>
+        <a stylr="float:right" href="/signup/"><button>SignUp</button></a>
+    {% endif %}
+</div>
+
+<div id="main" style="position:relative;top:55px;padding:20px;"> 
+
+{% block content %}
+
+{% endblock %}
+
+    <div class="footer">
+        <p> University of Illinois at Urbana-Champaign<!-- Copyright© Sneh Patel --> </p>
+    </div>
+</div>
+
+<script>
+    $('#searchName').keypress(function(event) {
+      var keycode = (event.keyCode ? event.keyCode : event.which);
+      if (keycode === 13) {
+        $('#search_people').submit();
+      }
+    });
+</script>
+
+</body>
+</html>

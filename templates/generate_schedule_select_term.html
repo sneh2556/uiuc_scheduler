@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    body {
+        height: 100%;
+        background-image: url(../static/images/illinois-math.jpg);
+        background-color: rgb(109, 109, 109);
+        background-size: cover;
+        background-blend-mode: normal;
+    }
+</style>
+
+<form id="searchform" action="/generate_schedule_view/" method="post"> {% csrf_token %}
+    <fieldset>
+      <select id="year" type="text" name="year">
+          <option value="">Select Year</option>
+          <option value="2020">2020</option>
+      </select>
+
+      <select id="sem" type="text" name="sem">
+          <option value="">Select Term</option>
+          <option value="Fall">Fall</option>
+          <option value="Spring">Spring</option>
+          <option value="Summer">Summer</option>
+          <option value="Winter">Winter</option>
+      </select>
+
+      <button type="submit">NEXT</button>
+    </fieldset>
+</form>
+
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+body {
+    height: 100%;
+    background-image: url(../static/images/illinois3.jpg);
+    background-color: rgb(109, 109, 109);
+    background-size: cover;
+    background-blend-mode: normal;
+}
+</style>
+
+<form id="searchform" method="post"> {% csrf_token %}
+    <fieldset>
+        <select id="year" type="text" name="year">
+            <option value="">Select Year</option>
+            <option value="2020">2020</option>
+        </select>
+        <select id="term" type="text" name="term">
+            <option value="">Select Term</option>
+            <option value="Fall">Fall</option>
+            <option value="Spring">Spring</option>
+            <option value="Summer">Summer</option>
+            <option value="Winter">Winter</option>
+        </select>
+        <select id="category" type="text" name="category">
+            <option value="">Select GenEd Category</option>
+            <option value="Advanced Composition">Advanced Composition</option>
+            <option value="Cultural Studies">Cultural Studies</option>
+            <option value="Humanities">Humanities & the Arts</option>
+            <option value="Nat Sci & Tech">Natural Sciences and Technology</option>
+            <option value="Quantitative Reasoning">Quantitative Reasoning</option>
+            <option value="Social & Beh Sci">Social & Behavioral Sciences</option>
+        </select>
+        <select id="subcategory" type="text" name="subcategory">
+            <option value="">Select GenEd Subcategory</option>
+        </select>
+
+        <select id="filter-1" type="text" name="filter-1">
+            <option value="">Select Sorting Filter 1</option>
+            <option value="avg">Highest GPA Average</option>
+            <option value="total">Most Enrollment</option>
+        </select>
+
+        <select id="filter-2" type="text" name="filter-2">
+            <option value="">Select Sorting Filter 2</option>
+            <option value="avg">Highest GPA Average</option>
+            <option value="total">Most Enrollment</option>
+        </select>
+
+        <button type="submit">Submit</button>
+
+    </fieldset>
+</form>
+
+<script>
+    $("#category").change(function() {
+        $("#subcategory").find('option:not(:first)').remove();
+        var category = $(this).val();
+        if (category === 'Cultural Studies') {
+            $("#subcategory").append("<option value='Non-West'>Non-Western Cultures</option>");
+            $("#subcategory").append("<option value='US Minority'>U.S. Minority Cultures</option>");
+            $("#subcategory").append("<option value='Western'>Western/Comparative Culture</option>");
+        } else if (category === 'Humanities') {
+            $("#subcategory").append("<option value='Hist & Phil'>Historical & Philosophical Perspectives</option>");
+            $("#subcategory").append("<option value='Lit & Arts'>Literature & the Arts</option>");
+        } else if (category === 'Nat Sci & Tech') {
+            $("#subcategory").append("<option value='Life Sciences'>Life Sciences</option>");
+            $("#subcategory").append("<option value='Phys Sciences'>Physical Sciences</option>");
+        } else if (category === 'Quantitative Reasoning') {
+            $("#subcategory").append("<option value='Quantitative Reasoning I'>Quantitative Reasoning I</option>");
+            $("#subcategory").append("<option value='Quantitative Reasoning II'>Quantitative Reasoning II</option>");
+        } else if (category === 'Social & Beh Sci') {
+            $("#subcategory").append("<option value='Beh Sci'>Behavioral Science</option>");
+            $("#subcategory").append("<option value='Soc Sci'>Social Science</option>");
+        }
+    });
+</script>
+
+{% endblock %}

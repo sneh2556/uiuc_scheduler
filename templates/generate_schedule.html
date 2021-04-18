@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+<style>
+body {
+      height: 100%;
+      background-image: url(../../static/images/illinois-astrobs.jpeg);
+      background-color: rgb(109, 109, 109);
+      background-size: cover;
+      background-blend-mode: normal;
+}
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+ul li {
+  border: 1px solid #ddd;
+  margin-top: -1px; /* Prevent double borders */
+  background-color: #f6f6f6;
+  padding: 12px;
+  text-decoration: none;
+  font-size: 18px;
+  color: black;
+  display: block;
+  position: relative;
+}
+
+ul li:hover {
+  background-color: #eee;
+}
+
+.close {
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  right: 0%;
+  padding: 12px 16px;
+  transform: translate(0%, -50%);
+}
+
+.close:hover {background: #bbb;}
+
+.weekDays-selector input {
+  display: none!important;
+}
+
+.weekDays-selector input[type=checkbox] + label {
+  display: inline-block;
+  border-radius: 6px;
+  background: #dddddd;
+  height: 40px;
+  width: 30px;
+  margin-right: 3px;
+  line-height: 40px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.weekDays-selector input[type=checkbox]:checked + label {
+  background: #2AD705;
+  color: #ffffff;
+}
+
+.textbox{
+    display: inline-block;
+    position: absolute;
+    width: 200px;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.3);
+    color: rgb(255, 255, 255);
+    font-weight: bolder;
+    padding: 15px 15px;
+    margin: 25px;
+    font-size: 45px;
+}
+
+#searchform input, #searchform button, #searchform select {
+  height: 70px;
+  font-size: 17px;
+}
+
+</style>
+
+<script type="text/javascript">
+    // Create a new list item when clicking on the "Add" button
+    function newElement() {
+      list = document.getElementsByTagName('ul')[0];
+      newItem = document.createElement('li');
+      var t1 = document.getElementById('subjects').value;
+      var t2 = document.getElementById('numbers').value;
+      var t3 = document.getElementById('priority').value;
+      if (t1 == '' || t2 == '' || t3 == '') {
+          alert("Please Course Subject and Number!");
+      } else {
+        var value1 = t1 + " " + t2
+        var value2 = t1 + " " + t2 + " " + t3
+        newItem.innerHTML = (value1 + "<input type='hidden' name='list[]' value='"+value2+"'><span style='font-size:20px;'class='close'>&times;</span>");
+        list.appendChild(newItem);
+        child = newItem.children[1];
+        child.addEventListener("click", function() {
+            this.parentElement.remove();
+        });
+        document.getElementById('subjects').value = "";
+        $("#numbers").find('option:not(:first)').remove();
+        document.getElementById('priority').value = "";
+      }
+    }
+
+    $(document).ready(function(){
+        $.ajaxSetup({
+            headers: {
+                "X-CSRFToken": $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+        $('#subjects').change(function() {
+            var subject = $(this).val();
+            var year = $("#year").val();
+            var sem = $("#sem").val();
+
+            req = $.ajax({
+                url : '/api/get_numbers/',
+                type : 'POST',
+                async: true,
+                cache: false,
+                headers: {
+                "cache-control": "no-cache"
+                },
+                data : { subject : subject, year : year, sem : sem }
+            });
+
+            req.done(function(data) {
+                $("#numbers").find('option:not(:first)').remove();
+                var len = data.length;
+                for (var i = 0; i < len; i++) {
+                    var num = data[i];
+                    $("#numbers").append("<option value='"+num+"'>"+num+"</option>");
+                }
+            });
+        });
+
+        $('#submit').click(function() {
+            $("#container").html("");
+            $("#header1").html("");
+            $("#courses").empty();
+            $("#schedules").empty();
+            var year = $("#year").val();
+            var sem = $("#sem").val();
+            var formData = $('#searchform').serialize();
+
+            req = $.ajax({
+                url : '/generate_schedule/',
+                type : 'POST',
+                data: formData,
+                dataType: 'json',
+            });
+
+            req.done(function(data) {
+                $("#header1").html("Found Schedules With Best GPA's for Courses Below...");
+                $("#courses").empty();
+
+                var c_len = data['courses'].length;
+                for (var i = 0; i < c_len; i++) {
+                    var course = data['courses'][i];
+                    var gpa = data['gpas'][i];
+                    var prof = data['profs'][i];
+                    var text = course + ': ' + gpa + '   Professor: ' + prof;
+                    $("#courses").append("<li value='"+text+"'>"+text+"</li>");
+                }
+                var len = data['combinations'].length;
+                $("#schedules").empty();
+                for (var i = 0; i < len; i++) {
+                    combination = jQuery.parseJSON(data['combinations'][i]);
+                    var json_obj_list = data['combinations'][i];
+                    newItem = document.createElement('tr');
+                    var schno = "Schedule " + (i+1);
+                    newItem.innerHTML = ("<td>" + schno + "<input style='margin-left:10px;' type='button' value='View' schedule_number='" + schno + "' comb='"+json_obj_list+"'><input style='margin-left:10px;' type='button' value='Save' comb='"+json_obj_list+ "'></td>");
+                    child = newItem.children[0].children[0];
+                    child.addEventListener("click", function() {
+                        var send = $(this).attr("comb");
+                        var schno = $(this).attr("schedule_number");
+                        $.post("/render_schedule/", {combination : send, schedule_number : schno}, function(data, status) {
+                            var w = window.open('about:blank');
+                            w.document.open();
+                            w.document.write(data);
+                            w.document.close();
+                        });
+                    });
+                    save = newItem.children[0].children[1];
+                    save.addEventListener("click", function() {
+                        var send = $(this).attr("comb");
+                        $.post("/save_schedule/", {combination : send}, function(data, status) {
+                            alert(data);
+                        });
+                    });
+                    $("#schedules").append(newItem);
+                }
+            });
+        });
+        
+        $(document).ajaxStart(function () {
+            $("#loading").html("Loading...");
+        }).ajaxStop(function () {
+            $("#loading").html("");
+        });
+    });
+
+</script>
+
+<form style="width:750px;height:75%;margin:0;display:inline-block;" id='searchform' autocomplete=off> {% csrf_token %}
+    <fieldset style="height:95%;float:left;margin:25px;width:325px;border:1px white solid;">
+        <input id="subjects" type="text" name="subjects" placeholder="Subject">
+
+        <select id="numbers" type="text" name="numbers">
+            <option value="">Select Course Number..</option>
+        </select>
+
+        <input id="priority" type="text" name="priority" placeholder="Priority">
+
+        <input type="button" onclick="newElement()" value="Add Course">
+
+        <input id='year' name='year' type='hidden' value={{year}}>
+        <input id='sem' name='sem' type='hidden' value={{sem}}>
+
+        <input id='submit' name='submit' type="button" value="Generate">
+    </fieldset>
+    <fieldset style="height:95%;padding:5px;margin:25px;float:left;width:325px;border:1px white solid;">
+        <section style="margin:0;height:100%;">
+            <div class="tbl-header">
+                <table cellpadding="0" cellspacing="0" border="0">
+                    <thead>
+                      <tr>
+                          <th>Courses</th>
+                        </tr>
+                    </thead>
+                </table>
+              </div>
+            <div class="tbl-content" style="height:86%;">
+                <table cellpadding="0" cellspacing="0" border="0">
+                    <tbody>
+                          <tr><td style="padding:0;">
+                            <ul id='CourseList' name='CourseList'>
+                            </ul>
+                          </td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </fieldset>
+</form>
+
+<div style='background: rgba(0, 40, 85, 0.9);position:absolute;display:inline-block;width:45%;height:63%;border:1px solid;text-align:center;color:rgb(255, 255, 255);font-weight:bolder;padding:15px 15px;margin:25px;'>
+    <div style='height:90%;width:100%;margin:0px;'>
+        <h1 style='font-size:30px;margin:0px;'>RESULTS</h1>
+        <h2 id="loading"></h2>
+        <h2 id="header1" style='margin:5px;font-size:20;'></h2>
+        <section style='display:inline-block;width:45%;margin:5px;height:90%;'>
+            <div class="tbl-header">
+                <table cellpadding="0" cellspacing="0" border="0">
+                    <thead>
+                      <tr>
+                          <th>Courses</th>
+                        </tr>
+                    </thead>
+                </table>
+              </div>
+            <div class="tbl-content" style="height:80%;width:100%;">
+                <table cellpadding="0" cellspacing="0" border="0">
+                    <tbody>
+                        <tr><td style="padding:0;">
+                            <ul id="courses">
+                            </ul>
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <section style='display:inline-block;width:45%;margin:5px;height:90%;'>
+            <div class="tbl-header">
+                <table cellpadding="0" cellspacing="0" border="0">
+                    <thead>
+                      <tr>
+                          <th>Schedules</th>
+                        </tr>
+                    </thead>
+                </table>
+              </div>
+            <div class="tbl-content" style="height:80%;width:100%;">
+                <table cellpadding="0" cellspacing="0" border="0">
+                    <tbody id="schedules">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+
+{% endblock %}

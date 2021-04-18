@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<script>
+  $(document).ready(function(){
+    $.ajaxSetup({
+        headers: {
+            "X-CSRFToken": $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
+    $('.update').click(function() {
+        var post_req = $(this).attr('request');
+        var id = $(this).attr('id')
+
+        req = $.ajax({
+            url: post_req,
+            type: 'POST',
+            async: true,
+            cache: false,
+            headers: {
+              "cache-control": "no-cache"
+            },
+            data: {'id':id}
+        });
+
+        req.done(function() {
+            location.reload();
+        });
+    });
+  });
+</script>
+
+<section style='width:600px;margin:50px auto;'>
+<div class="tbl-header">
+  <table cellpadding="0" cellspacing="0" border="0">
+      <thead>
+        <tr>
+            <th>Search Results</th>
+        </tr>
+      </thead>
+  </table>
+</div>
+<div class="tbl-content">
+    <table cellpadding="0" cellspacing="0" border="0">
+        <tbody>
+              {% for r in results %}
+              <tr>
+                <td>
+                  {{r.0}} {{r.1}}
+                </td>
+                {% if r.2 == 'Add Friend' %}
+                  <td><button id='{{r.3}}' class='update' request='/add_friend/' style='border-radius:5px;width:120px;padding:5px;'>{{r.2}}</button></td>
+                {% elif r.2 == 'Accept' %}
+                  <td><button id='{{r.3}}' class='update' request='/accept_request/' style='border-radius:5px;width:120px;padding:5px;'>{{r.2}}</button></td>
+                {% elif r.2 == 'Unfriend' %}
+                  <td><button id='{{r.3}}' class='update' request='/unfriend/' style='border-radius:5px;width:120px;padding:5px;'>{{r.2}}</button></td>
+                {% else %}
+                  <td><button id='{{r.3}}' class='update' request='/cancel_request/' style='border-radius:5px;width:120px;padding:5px;'>{{r.2}}</button></td>
+                {% endif %}
+              </tr>
+              {% endfor %}
+        </tbody>
+    </table>
+</div>
+</section>
+
+{% endblock %}

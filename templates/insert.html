@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<script type="text/javascript" language="javascript">
+$(function() {
+      $("#rating").change(function(){
+      var r= $('option:selected', this).attr('value');
+      $('#ratng').val(r);
+   });
+});
+
+$(function() {
+    $("#profs").autocomplete({
+      source: "/api/get_profs/",
+      select: function (event, ui) { //item selected
+        AutoCompleteSelectHandler(event, ui)
+      },
+      minLength: 2,
+    });
+  });
+
+  function AutoCompleteSelectHandler(event, ui)
+  {
+    var selectedObj = ui.item;
+  }
+</script>
+
+<style>
+    #searchform {
+        width: 500px;
+    }
+    #searchform textarea {
+        padding: 15px;
+    	  border: 1px solid black/*#ccc*/;
+    	  border-radius: 3px;
+    	  margin-bottom: 10px;
+    	  width: 100%;
+    	  box-sizing: border-box;
+    	  font-family: montserrat;
+    	  /*color: #2C3E50;*/
+        color: black;
+    	  font-size: 13px;
+        background-color: white;
+    }
+    body {
+        height: 100%;
+        background-image: url(../static/images/illinois-lincoln.jpg);
+        background-color: rgb(109, 109, 109);
+        background-size: cover;
+        background-blend-mode: normal;
+    }
+</style>
+
+{% if messages %}
+    {% for message in messages %}
+      <p style="text-align:center;">{{message}}</p>
+    {% endfor %}
+{% endif %}
+
+<form id="searchform" method="post" autocomplete=off> {% csrf_token %}
+    <fieldset>
+        <input id="subjects" type="text" name="subjects" placeholder="Subject"/>
+        <input id="profs" type="text" name="profs" placeholder="Professor"/>
+        <br>
+        <label for="rating">Rating:</label>
+        <select id="rating">
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+        <input id="ratng" type="hidden" name="ratng" value="0" />
+
+        <textarea id="description" class="text" rows="4" cols="50" name="description" palceholder="Description"></textarea>
+
+        <button type="submit">Submit</button>
+    </fieldset>
+</form>
+
+{% endblock %}

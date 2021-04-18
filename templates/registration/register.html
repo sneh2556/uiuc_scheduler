@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    #helptext {
+        background-color: rgba(0, 40, 85, 0.9);
+        width: 700px;
+        margin: 20px auto;
+        padding: 10px;
+        position: relative;
+        text-align: center;
+        color: white;
+        font-weight: bold;
+    }
+    body {
+      height: 100%;
+      background-image: url(../../static/images/zoom2.jpg);
+      background-color: rgb(109, 109, 109);
+      background-size: cover;
+      background-blend-mode: normal;
+    }
+</style>
+
+<form style="width:408px;margin:25px auto;" id="searchform" autocomplete=off method="post"> {% csrf_token %}
+    <fieldset>
+      <h3 style="color:white;font-size:15px;">Enter Information</h3>
+      {% for field in form %}
+        {{ field }}
+      {% endfor %}
+      <button type="submit">Register</button>
+    </fieldset>
+</form>
+<div id="helptext">
+    Username Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.<ul style="list-style-type: none;"><li>Your password can&#39;t be too similar to your other personal information.</li><li>Your password must contain at least 8 characters.</li><li>Your password can&#39;t be a commonly used password.</li><li>Your password can&#39;t be entirely numeric.</li></ul> Enter the same password as before, for verification.
+</div>
+
+{% endblock %}

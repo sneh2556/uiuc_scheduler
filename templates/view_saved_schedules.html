@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+<script>
+    $(document).ready(function(){
+        $.ajaxSetup({
+            headers: {
+                "X-CSRFToken": $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $('.unsave').click(function() {
+            var schedule_id = $(this).attr('schedule_id');
+            $.post("/unsave_schedule/", {schedule_id : schedule_id}, function(data, status) {
+                location.reload();
+            });
+        });
+        $('.view').click(function() {
+            var send = $(this).attr('comb');
+            var schno = $(this).attr('schedule_number');
+            var term = $(this).attr('term');
+            var year = $(this).attr('year');
+            $.post("/render_schedule/", {combination : send, schedule_number : schno, term : term, year : year, saved : 'yes'}, function(data, status) {
+                var w = window.open('about:blank');
+                w.document.open();
+                w.document.write(data);
+                w.document.close();
+            });
+        });
+    });
+</script>
+
+<style>
+    .tbl-header{
+        background-color: rgba(0, 0, 0, 0.55);
+    }
+    th{
+        font-weight: bolder;
+        font-size: 20px;
+    }
+    body {
+      height: 100%;
+      background-image: url(../../static/images/illinois-memorial.jpg);
+      background-color: rgb(109, 109, 109);
+      background-size: cover;
+      background-blend-mode: normal;
+}
+</style>
+
+<section style='width:50%; margin:auto;'>
+    <div class="tbl-header">
+        <table cellpadding="0" cellspacing="0" border="0">
+            <thead>
+                <tr>
+                    <th style='width:50%;'>Schedules</th>
+                    <th>Term</th>
+                    <th>Year</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <div class="tbl-content" style='background:rgba(0, 40, 85, 0.95)'>
+        <table cellpadding="0" cellspacing="0" border="0">
+            <tbody>
+                {% if results.0.0 is not None %}
+                    {% for result in results %}
+                        <tr>
+                            <td style='width:50%;'>Schedule {{result.0}} <input style='margin-left:10px;' type='button' class='view' value='View' schedule_number='{{result.0}}' comb='{{result.1}}' term='{{result.2}}' year='{{result.3}}'><input style='margin-left:10px;' type='button' class='unsave' value='Unsave' schedule_id='{{result.0}}'></td>
+                            <td>{{result.2}}</td>
+                            <td>{{result.3}}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <h1 style='color:grey;margin:10px;'>You Have No Saved Schedules!</h1>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    <br>
+</section>
+
+
+{% endblock %}

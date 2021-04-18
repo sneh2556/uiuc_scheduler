@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+  .menutop {
+    background-color: rgb(0,0,0,0.5)/*#002855*/;
+  }
+  body {
+      height: 100%;
+      background-image: url(../../static/images/zoom1.jpg);
+      background-color: rgb(109, 109, 109);
+      background-size: cover;
+      background-blend-mode: normal;
+  }
+</style>
+
+  {% if form.errors %}
+    <p>Your username and password didn't match. Please try again.</p>
+  {% endif %}
+
+  {% if next %}
+    {% if user.is_authenticated %}
+      <p>Your account doesn't have access to this page. To proceed,
+      please login with an account that has access.</p>
+    {% else %}
+      <p>Please login to see this page.</p>
+    {% endif %}
+  {% endif %}
+
+  <form id="searchform" method="post" action="{% url 'login' %}"> {% csrf_token %}
+      <fieldset>
+        {{ form.username.label_tag }}
+        {{ form.username }}
+
+        {{ form.password.label_tag }}
+        {{ form.password }}
+
+        <button type="submit" value="login">LOGIN</button>
+        <input type="hidden" name="next" value="{{ next }}" />
+        <p><a style='color: white;' href="{% url 'password_reset' %}">Lost password?</a></p>
+      </fieldset>
+  </form>
+
+  {# Assumes you setup the password_reset view in your URLconf #}
+  <br>
+
+{% endblock %}

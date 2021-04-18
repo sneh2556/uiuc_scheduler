@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+<script>
+    $(document).ready(function(){
+        $.ajaxSetup({
+            headers: {
+                "X-CSRFToken": $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+        $('.view').click(function() {
+            var send = $(this).attr('comb');
+            var schno = $(this).attr('schedule_number');
+            var term = $(this).attr('term');
+            var year = $(this).attr('year');
+            $.post("/render_schedule/", {combination : send, schedule_number : schno, term : term, year : year, saved : 'yes'}, function(data, status) {
+                var w = window.open('about:blank');
+                w.document.open();
+                w.document.write(data);
+                w.document.close();
+            });
+        });
+    });
+</script>
+
+<style>
+    th{
+        font-weight: bolder;
+        font-size: 20px;
+    }
+</style>
+
+<section style='width:50%; margin:auto;'>
+    <div class="tbl-header">
+        <table cellpadding="0" cellspacing="0" border="0">
+            <thead>
+                <tr>
+                    <th style='width:20%;'>First Name</th>
+                    <th style='width:20%;'>Last Name</th>
+                    <th style='width:35%;'>Schedule</th>
+                    <th>Term</th>
+                    <th>Year</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <div class="tbl-content">
+        <table cellpadding="0" cellspacing="0" border="0">
+            <tbody>
+                <tbody>
+                    {% if results.0.0 is not None %}
+                        {% for result in results %}
+                            <tr>
+                                <td style='width:20%;'>{{result.4}}</td>
+                                <td style='width:20%;'>{{result.5}}</td>
+                                <td style='width:35%;'>Schedule {{result.0}} <input style='margin-left:10px;' type='button' class='view' value='View' schedule_number='{{result.0}}' comb='{{result.1}}' term='{{result.2}}' year='{{result.3}}'></td>
+                                <td>{{result.2}}</td>
+                                <td>{{result.3}}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <h1 style='color:rgb(0, 0, 0);margin:10px;'>You Have No Saved Schedules!</h1>
+                    {% endif %}
+                </tbody>
+            </tbody>
+        </table>
+    </div>
+    <br>
+</section>
+
+
+{% endblock %}

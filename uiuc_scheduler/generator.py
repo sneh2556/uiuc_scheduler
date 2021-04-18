@@ -1,0 +1,281 @@
+from __future__ import unicode_literals
+from .models import RegularCourse, Gpa
+import numpy as np
+from itertools import *
+
+def Sort_Tuple(tup):
+    tup.sort(key = lambda x: x[0])
+    return tup
+
+def schedule_generator(courses, days, year, term):
+    course_list = []
+    exclude_days = get_days_to_exclude(days)
+
+    lec_crns = []
+    dis_crns = []
+
+    for c in courses:
+        temp = c.split()
+        t = (temp[0], temp[1])
+        p = int(temp[2])
+        tup = (p, t)
+        course_list.append(tup)
+
+    #print('Initial Course list: ', course_list)
+    course_list.sort()
+    #print('after sorting Course list: ', course_list)
+    results, courses = get_course_info(course_list, exclude_days, year, term)
+
+    final_result, gpas, profs = priority_search(results)
+    #print(gpas)
+    #print(courses)
+    #print(profs)
+
+    return final_result, gpas, courses, profs
+
+def check_conflicts(combination):
+    conflict = 0
+    for i in range(len(combination)-1):
+        a_lec = combination[i][1]
+        a_dis = combination[i][2]
+        a_lab = combination[i][3]
+        a_lec_time = (a_lec.starttime, a_lec.endtime, a_lec.days)
+        list1 = [a_lec_time]
+
+        if a_dis is not None:
+            a_dis_time = (a_dis.starttime, a_dis.endtime, a_dis.days)
+            list1.append(a_dis_time)
+        if a_lab is not None:
+            a_lab_time = (a_lab.starttime, a_lab.endtime, a_lab.days)
+            list1.append(a_lab_time)
+            
+        for j in range(i+1, len(combination)):
+            b_lec = combination[j][1]
+            b_dis = combination[j][2]
+            b_lab = combination[j][3]
+            b_lec_time = (b_lec.starttime, b_lec.endtime, b_lec.days)
+            list2 = [b_lec_time]
+
+            if b_dis is not None:
+                b_dis_time = (b_dis.starttime, b_dis.endtime, b_dis.days)
+                list2.append(b_dis_time)
+            if b_lab is not None:
+                b_lab_time = (b_lab.starttime, b_lab.endtime, b_lab.days)
+                list2.append(b_lab_time)
+
+            for k in range(len(list1)):
+                for l in range(len(list2)):
+                    conflict += check_time_conflict(list1[k], list2[l])
+                    if conflict != 0:
+                        return conflict
+    return conflict
+
+
+# def new_priority_search(course_sections):
+#     num_courses = len(course_sections)
+#     split = num_courses // 2
+
+# Returns None if there are conflicts
+def priority_search(results):
+    all_combinations = list(product(*results))
+
+    num_c = len(all_combinations[0])
+    gpas = np.zeros(shape=(num_c,))
+    profs = []
+    non_conflict = 0
+    #print(all_combinations[0])
+    x = 0
+    count = 0
+    length = len(all_combinations)
+    while count < length:
+        combination = all_combinations[count]
+        conflict = 0
+        #print(count)
+        conflict = check_conflicts(combination)
+
+        if (conflict != 0):
+            #print('Conflict Found!')
+            all_combinations.remove(combination)
+            length = len(all_combinations)
+            #print(len(all_combinations))
+        else:
+            count += 1
+
+    #for c in all_combinations:
+        #print(c[0][0], ' ', c[0][1].starttime, ' ', c[0][1].endtime, ' ', c[1][0], ' ', c[1][1].starttime, ' ', c[1][1].endtime)
+    if len(all_combinations) == 0:
+        return None, None, None
+
+    for i in range(num_c):
+        gpas[i] = all_combinations[0][i][0]
+        profs.append(all_combinations[0][i][1].instructors)
+    print('New Length of All Combinations: ', len(all_combinations))
+    print(gpas)
+    #print('returned...')
+
+    final_results = []
+    cont = 0
+    for combination in all_combinations:
+        to_append = []
+        if combination[0][0] != gpas[0]:
+            break
+
+        for i in range(num_c):
+            to_append.append(combination[i][1])
+            if combination[i][2] != None:
+                to_append.append(combination[i][2])
+            if combination[i][3] != None:
+                to_append.append(combination[i][3])
+            if combination[i][0] != gpas[i]:
+                cont = 1
+                break
+        if cont == 1:
+            cont = 0
+            continue
+        final_results.append(to_append)
+
+    print('Final Results Lenght: ', len(final_results))
+
+    return final_results, gpas, profs
+
+def get_course_info(course_list, exclude_days, year, term):
+    results = []
+    courses = []
+    for c in course_list:
+        result = []
+        subject = c[1][0]
+        number = c[1][1]
+        courses.append(subject + ' ' + number)
+        open = '%Open%'
+        lec_sections = RegularCourse.objects.raw("SELECT id, CRN, Type, Instructors, Days, StartTime, EndTime FROM regular_courses WHERE Subject=%s AND Number=%s AND (Type<>'LAB' AND Type<>'DIS' AND Type<>'LBD' AND Type<>'Q' AND Type<>'ST') AND Year=%s AND Term=%s AND EnrollmentStatus LIKE %s", [subject, number, year, term, open])
+        dis_sections = RegularCourse.objects.raw("SELECT id, CRN, Type, Instructors, Days, StartTime, EndTime FROM regular_courses WHERE Subject=%s AND Number=%s AND (Type='DIS' OR Type='LBD' OR Type='Q') AND Year=%s AND Term=%s AND EnrollmentStatus LIKE %s", [subject, number, year, term, open])
+        only_lab_sections = RegularCourse.objects.raw("SELECT id, CRN, Type, Instructors, Days, StartTime, EndTime FROM regular_courses WHERE Subject=%s AND Number=%s AND (Type='LAB' OR Type='ST') AND Year=%s AND Term=%s AND EnrollmentStatus LIKE %s", [subject, number, year, term, open])
+
+        print('Length of Lectures: ', len(list(lec_sections)))
+        print('Length of Discussions: ', len(list(dis_sections)))
+        print('Length of Labs:', len(list(only_lab_sections)))
+        # some if conditons
+
+        for sl in lec_sections:
+            professor = str(sl.instructors)
+            professor = professor.replace('\r','')
+            prof = '%' + professor + '%'
+
+            if professor == '':
+                prof = '%NO_PROFESSOR%s'
+            gpa = Gpa.objects.raw("SELECT COUNT(ID) as ID, AVG(avgGpa) as avgGPA, PrimaryInstructor from gpa WHERE Subject=%s AND Number=%s AND PrimaryInstructor LIKE %s GROUP BY PrimaryInstructor", [subject, number, prof])
+            avgGpa = 0
+            if len(list(gpa)) != 0:
+                avgGpa = gpa[0].avgGPA
+
+            if (len(list(dis_sections)) == 0):
+                if (len(list(only_lab_sections)) == 0):
+                    result.append((avgGpa, sl, None, None))
+                else: 
+                    for lab in only_lab_sections:
+                        lab_professor = str(lab.instructors)
+                        if professor in lab_professor:
+                            result.append((avgGpa, sl, None, lab))
+            else:
+                for sd in dis_sections:
+                    dis_prof = str(sd.instructors)
+                    if professor in dis_prof:
+                        if (len(list(only_lab_sections)) == 0):
+                            result.append((avgGpa, sl, sd, None))
+                        else: 
+                            for lab in only_lab_sections:
+                                lab_professor = str(lab.instructors)
+                                if professor in lab_professor and lab.crn == sd.crn:
+                                    result.append((avgGpa, sl, sd, lab))
+
+        result = Sort_Tuple(result) #result.sort(reverse=True)
+        #for r in result:
+            #if r[2] != None:
+                #print(r[1].starttime, r[1].endtime, r[2].starttime, r[2].endtime)
+            #else:
+                #print(r[1].starttime, r[1].endtime)
+        #print(len(result))
+        #result = set(result)
+        print(len(result))
+        results.append(result)
+    return results, courses
+
+def get_days_to_exclude(days):
+    result = []
+    if 'M' not in days:
+        result.append('M')
+    if 'T' not in days:
+        result.append('T')
+    if 'W' not in days:
+        result.append('W')
+    if 'R' not in days:
+        result.append('R')
+    if 'F' not in days:
+        result.append('F')
+
+    return result
+
+def check_time_conflict(one, two):
+    one_start = one[0]
+    one_end = one[1]
+    one_days = one[2]
+
+    two_start = two[0]
+    two_end = two[1]
+    two_days = two[2]
+
+    days_conflict = 0
+    for i in range(len(one_days)):
+        if one_days[i] in two_days:
+            days_conflict = 1
+
+    if (days_conflict):
+        one_start = convert_time(one_start)
+        one_end = convert_time(one_end)
+        two_start = convert_time(two_start)
+        two_end = convert_time(two_end)
+
+        if (two_start > one_start and two_end < one_end):
+            return 1
+        elif (two_start < one_start and two_end > one_end):
+            return 1
+        elif (two_start > one_start and two_start < one_end):
+            return 1
+        elif (two_end > one_start and two_end < one_end):
+            return 1
+        elif (two_start == one_start or two_end == one_end or one_start == two_end or one_end == two_start):
+            return 1
+
+    return 0
+
+def convert_time(time):
+    if 'AM' in time:
+        add = int(time[3:5]) / 60
+        if '12' in time:
+            return (add)
+        else:
+            return (int(time[0:2]) + add)
+
+    if 'PM' in time:
+        add = int(time[3:5]) / 60
+        if '12' in time:
+            return (12+add)
+        else:
+            return (int(time[0:2]) + 12 + add)
+
+# Not in use right now
+def get_matrix(results):
+    cols = len(results)
+    max = 0
+    for result in results:
+        if (len(result) > max):
+            max = len(result)
+    rows = max
+    array = np.zeros(shape=(rows, cols))
+
+    for i in range(len(results)):
+        result = results[i]
+        for j in range(len(result)):
+            array[i][j] = result[j]
+
+    return array, rows, cols

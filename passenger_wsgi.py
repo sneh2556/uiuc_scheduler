@@ -1,0 +1,1 @@
+from cs411project.wsgi import application

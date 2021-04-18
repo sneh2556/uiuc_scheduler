@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    .textbox{
+        position: relative;
+        height: 15%;
+        width: 40%;
+        background-color: rgba(0, 40, 85, 0.9);
+        border: 1px solid white;/*rgba(0, 40, 85, 1);*/
+        color: rgb(255, 255, 255);
+        padding: 10px 10px;
+        margin: auto;
+        font-size: 10px;
+    }
+</style>
+
+<div class='textbox'>
+    <p style='text-align:left;width:49%;display:inline-block;margin:0;font-size:20px;'>Professor</p>
+    <p style='text-align:right;width:50%;display:inline-block;margin:0;font-size:20px;'> {{prof_name}}</p>
+    <p style='text-align:left;width:49%;display:inline-block;margin:0;font-size:20px;'>Department</p>
+    <p style='text-align:right;width:50%;display:inline-block;margin:0;font-size:20px;'>{{subject}}</p>
+    <p style='text-align:left;width:49%;display:inline-block;margin:0;font-size:20px;'>Average Rating</p>
+    <p style='text-align:right;width:50%;display:inline-block;margin:0;font-size:20px;'> {{avg}}</p>
+    <p style='text-align:left;width:49%;display:inline-block;margin:0;font-size:20px;'>Total Ratings</p>
+    <p style='text-align:right;width:50%;display:inline-block;margin:0;font-size:20px;'> {{total}}</p>
+</div>
+
+<section style='margin:10px auto;width:90%;'>
+<div class="tbl-header">
+    <table cellpadding="0" cellspacing="0" border="0">
+      <thead>
+          <tr>
+              <th style='width:10%;'>Rating</th>
+              <th>Description</th>
+         </tr>
+      </thead>
+    </table>
+</div>
+<div class="tbl-content">
+   <table cellpadding="0" cellspacing="0" border="0">
+     <tbody>
+        {% for r in ratings %}
+        <tr>
+        <!-- -->
+            <td style='width:10%;'>{{ r.rating }}</td>
+            <td>{{ r.description }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+   </table>
+</div>
+</section>
+
+{% endblock %}

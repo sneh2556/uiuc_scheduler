@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+  body {
+      height: 100%;
+      background-image: url(../static/images/illinois-ugl.jpg);
+      background-color: rgb(109, 109, 109);
+      background-size: cover;
+      background-blend-mode: normal;
+  }
+</style>
+
+<script type="text/javascript" language="javascript">
+$(function() {
+    $("#profs").autocomplete({
+      source: "/api/get_profs/",
+      select: function (event, ui) { //item selected
+        AutoCompleteSelectHandler(event, ui)
+      },
+      minLength: 2,
+    });
+  });
+
+  function AutoCompleteSelectHandler(event, ui)
+  {
+    var selectedObj = ui.item;
+  }
+
+</script>
+
+<form id="searchform" action="/display_prof_ratings/" method="post"> {% csrf_token %}
+    <fieldset>
+        <input id="subjects" type="text" name="subjects" placeholder="Department" />
+        <input id="profs" type="text" name="profs" value="" placeholder="Professor" />
+        <button type="submit">Submit</button>
+    </fieldset>
+</form>
+
+{% endblock %}

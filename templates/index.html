@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    html {
+        height: 100%;
+    }
+
+    .menutop {
+        opacity: 0.9;
+    }
+    
+    body {
+        height: 100%;
+        background-image: url(../static/images/illinois9.jpg);
+        background-color: rgb(109, 109, 109);
+        background-size: cover;
+        background-blend-mode: normal;
+    }
+
+    .textbox {
+        border-radius: 10px;
+        position: relative;
+        height:98%;
+        width: 98%;
+        text-align: center;
+        background-color: rgba(0, 0, 0, 0.3);
+        color: rgb(255, 255, 255);
+        font-weight: bolder;
+        padding: 15px 15px;
+        font-size: 85px;
+        margin: 0px auto;
+    }
+    
+</style>
+
+<div class="textbox">
+    <p>WELCOME TO UIUC COURSE SCHEDULER!</p>
+</div>
+
+{% endblock %}

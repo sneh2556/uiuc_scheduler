@@ -1,0 +1,182 @@
+{% load static %}
+<!doctype html>
+
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>document.getElementsByTagName("html")[0].className += " js";</script>
+  <link rel="stylesheet" type=text/css href="{% static 'assets/css/style.css' %}">
+  <title>Schedule</title>
+</head>
+
+<script src="http://code.jquery.com/jquery-1.9.0.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"> </script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+
+<body style="background:rgb(255, 255, 255);">
+    <header class="cd-main-header text-center flex flex-column flex-center" style="background-color:rgb(0, 0, 0);">
+    <h1 class="text-xl" style='color:white;'>{{schedule_number}}</h1>
+  </header>
+
+  <div style="color:black" class="cd-schedule cd-schedule--loading margin-top-lg margin-bottom-lg js-cd-schedule">
+    <div class="cd-schedule__timeline">
+      <ul>
+        <li><span>08:00</span></li>
+        <li><span>08:30</span></li>
+        <li><span>09:00</span></li>
+        <li><span>09:30</span></li>
+        <li><span>10:00</span></li>
+        <li><span>10:30</span></li>
+        <li><span>11:00</span></li>
+        <li><span>11:30</span></li>
+        <li><span>12:00</span></li>
+        <li><span>12:30</span></li>
+        <li><span>13:00</span></li>
+        <li><span>13:30</span></li>
+        <li><span>14:00</span></li>
+        <li><span>14:30</span></li>
+        <li><span>15:00</span></li>
+        <li><span>15:30</span></li>
+        <li><span>16:00</span></li>
+        <li><span>16:30</span></li>
+        <li><span>17:00</span></li>
+        <li><span>17:30</span></li>
+        <li><span>18:00</span></li>
+        <li><span>18:30</span></li>
+        <li><span>19:00</span></li>
+        <li><span>19:30</span></li>
+      </ul>
+    </div> <!-- .cd-schedule__timeline -->
+
+    <div class="cd-schedule__events">
+      <ul>
+        <li class="cd-schedule__group">
+          <div style="background-color:rgba(0,0,0,0.3)" class="cd-schedule__top-info"><span>Monday</span></div>
+
+          <ul name="monday" id="monday">
+          </ul>
+        </li>
+
+        <li class="cd-schedule__group">
+          <div style="background-color:rgba(0,0,0,0.3)" class="cd-schedule__top-info"><span>Tuesday</span></div>
+
+          <ul id="tuesday">
+
+          </ul>
+        </li>
+
+        <li class="cd-schedule__group">
+          <div style="background-color:rgba(0,0,0,0.3)" class="cd-schedule__top-info"><span>Wednesday</span></div>
+
+          <ul id="wednesday">
+
+          </ul>
+        </li>
+
+        <li class="cd-schedule__group">
+          <div style="background-color:rgba(0,0,0,0.3)" class="cd-schedule__top-info"><span>Thursday</span></div>
+
+          <ul id="thursday">
+
+          </ul>
+        </li>
+
+        <li class="cd-schedule__group">
+          <div style="background-color:rgba(0,0,0,0.3)" class="cd-schedule__top-info"><span>Friday</span></div>
+
+          <ul id="friday">
+
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div class="cd-schedule-modal">
+      <header class="cd-schedule-modal__header">
+        <div class="cd-schedule-modal__content">
+          <span class="cd-schedule-modal__date"></span>
+          <h3 class="cd-schedule-modal__name"></h3>
+        </div>
+
+        <div class="cd-schedule-modal__header-bg"></div>
+      </header>
+
+      <div class="cd-schedule-modal__body">
+        <div class="cd-schedule-modal__event-info"></div>
+        <div class="cd-schedule-modal__body-bg"></div>
+      </div>
+
+      <a href="#0" class="cd-schedule-modal__close text-replace">Close</a>
+    </div>
+
+    <div class="cd-schedule__cover-layer"></div>
+  </div> <!-- .cd-schedule -->
+  <button type="hidden" id="myHiddenButton">
+  <script>
+      var comb = jQuery.parseJSON('{{combination | escapejs}}');
+      var length = comb.length;
+
+      for (var i = 0; i < length; i++) {
+          var days = comb[i].fields.days;
+          var starttime = comb[i].fields.starttime;
+          var endtime = comb[i].fields.endtime;
+          starttime = change_time_format(starttime);
+          endtime = change_time_format(endtime);
+          var course = comb[i].fields.subject + ' ' + comb[i].fields.number;
+          var type = comb[i].fields.type;
+          var crn = comb[i].pk;
+          var instructors = comb[i].fields.instructors;
+          var newline = "\n";
+
+          if (days.includes("M")) {
+              $("#monday").append("<li class='cd-schedule__event'><a data-start='"+starttime+"' data-end='"+endtime+"' data-content='' data-event='event-"+(i+1)+"' href='#0'><em class='cd-schedule__name'>"+course+" - "+type+" CRN: "+crn+newline+instructors+"</em></a></li>");
+          }
+          if (days.includes("T")) {
+              $("#tuesday").append("<li class='cd-schedule__event'><a data-start='"+starttime+"' data-end='"+endtime+"' data-content='' data-event='event-"+(i+1)+"' href='#0'><em class='cd-schedule__name'>"+course+" - "+type+" CRN: "+crn+newline+instructors+"</em></a></li>");
+          }
+          if (days.includes("W")) {
+              $("#wednesday").append("<li class='cd-schedule__event'><a data-start='"+starttime+"' data-end='"+endtime+"' data-content='' data-event='event-"+(i+1)+"' href='#0'><em class='cd-schedule__name'>"+course+" - "+type+" CRN: "+crn+newline+instructors+"</em></a></li>");
+          }
+          if (days.includes("R")) {
+              $("#thursday").append("<li class='cd-schedule__event'><a data-start='"+starttime+"' data-end='"+endtime+"' data-content='' data-event='event-"+(i+1)+"' href='#0'><em class='cd-schedule__name'>"+course+" - "+type+" CRN: "+crn+newline+instructors+"</em></a></li>");
+          }
+          if (days.includes("F")) {
+              $("#friday").append("<li class='cd-schedule__event'><a data-start='"+starttime+"' data-end='"+endtime+"' data-content='' data-event='event-"+(i+1)+"' href='#0'><em class='cd-schedule__name'>"+course+" - "+type+" CRN: "+crn+newline+instructors+"</em></a></li>");
+          }
+      }
+
+  function change_time_format(time) {
+      if (time.includes("AM")) {
+          if (time.includes("12")) {
+              return '00:' + time.substr(3, 2);
+          } else {
+              return time.substr(0, 5);
+          }
+      }
+      if (time.includes("PM")) {
+          if (time.includes("12")) {
+              return time.substr(0, 5);
+          } else {
+              var x = parseInt(time.substr(0, 2));
+              x = x + 12;
+              var s = x.toString();
+              return s + time.substr(2, 3);
+          }
+      }
+      return 0;
+  }
+
+  </script>
+
+  <script>
+      $(document).ready(function() {
+          $("#myHiddenButton").click();
+      });
+  </script>
+
+  <script type="text/javascript" src="{% static 'assets/js/util.js' %}"></script>
+  <script type="text/javascript" src="{% static 'assets/js/main.js' %}"></script>
+</body>
+</html>

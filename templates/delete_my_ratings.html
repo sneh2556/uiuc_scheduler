@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<form action="/delete_rating/" method="post" autocomplete=off> {% csrf_token %}
+    <section>
+        <div class="tbl-header">
+            <table cellpadding="0" cellspacing="0" border="0">
+                <thead>
+                    <tr>
+                        <th>Professor</th>
+                        <th>Subject</th>
+                        <th>Rating</th>
+                        <th>Description</th>
+                        <th style="width:50">Checkbox</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+        <div class="tbl-content">
+            <table cellpadding="0" cellspacing="0" border="0">
+                <tbody>
+                    {% for r in ratings %}
+                        <tr>
+                            <td>{{ r.professor_name }}</td>
+                            <td>{{ r.subject }}</td>
+                            <td>{{ r.rating }}</td>
+                            <td>{{ r.description }}</td>
+                            <td><input type="checkbox" name="delete_update" value={{r.id}}></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <br>
+        <div style = "text-align:center">
+            <input class = "layui-btn" type="submit" id= "delete" name="delete" value="Delete">
+        </div>
+    </section>
+</form>
+
+{% endblock %}
